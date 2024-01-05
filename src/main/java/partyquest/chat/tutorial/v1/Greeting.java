@@ -1,4 +1,4 @@
-package partyquest.chat.tutorial;
+package partyquest.chat.tutorial.v1;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

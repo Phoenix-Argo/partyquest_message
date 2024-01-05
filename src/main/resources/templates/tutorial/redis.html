@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Websocket Tutorial-REDIS</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link th:href="@{/tutorial_source/main.css}" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+  <script th:src="@{/tutorial_source/tutorial_redis.js}"></script>
+</head>
+<body>
+<noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being
+  enabled. Please enable
+  Javascript and reload this page!</h2></noscript>
+<div id="main-content" class="container">
+  <div class="row">
+    <div class="col-md-3">
+      <a href="/tutorial">기본</a>
+    </div>
+    <div class="col-md-3">
+      <a href="/tutorial/redis">
+        방별로 정리
+      </a>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <form class="form-inline">
+        <div class="form-group">
+          <label for="connect">WebSocket connection:</label>
+          <button id="connect" class="btn btn-default" type="submit">Connect</button>
+          <button id="disconnect" class="btn btn-default" type="submit" disabled="disabled">Disconnect
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="col-md-6">
+      <form class="form-inline">
+        <div class="form-group">
+          <label for="name">새로운 채팅방 만들기</label>
+          <input type="text" id="name" class="form-control" placeholder="채팅방 이름을 입력하시오">
+        </div>
+        <button id="create" class="btn btn-default" type="submit">채팅방 생성</button>
+      </form>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <table id="chatRooms" class="table table-striped">
+        <thead>
+        <tr>
+          <th>채팅방 목록 <button id="call-rooms">목록 불러오기</button></th>
+        </tr>
+        </thead>
+        <tbody id="chat-rooms">
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <table id="conversation" class="table table-striped">
+        <thead>
+        <tr>
+          <th>Chats <span id="current_room"></span></th>
+        </tr>
+        </thead>
+        <tbody id="greetings">
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+<script th:inline="javascript">
+  /**
+   * 현재 채팅방에 접속해있는지 파악한다.
+   * 접속해 있을때에만 chattingroom을 보여준다.
+   * @type {boolean}
+   */
+  let isOnChat = false;
+
+  //fetching data section
+  async function loadList() {
+    return await fetch("http://localhost:8080/tutorial/stream-keys")
+            .then(res=>{
+              const result = res.json()
+              return result
+            })
+  }
+
+  async function createChatRoom() {
+
+  }
+
+  //utility function section
+  function updateChatRooms(data) {
+    const newRooms = data.rooms;
+    $("#chat-rooms").empty();
+    for (const newRoom of newRooms) {
+      $("#chat-rooms").append("<tr><td class='chatRoom'>" + newRoom + "</td></tr>");
+    }
+    $(".chatRoom").css('color', 'red')
+            .on('click', (e) => {
+              e.preventDefault()
+              enterRoom(e.target.innerText)
+            });
+  }
+
+  function updateChat() {
+
+  }
+
+  // event handler section
+  $("#call-rooms").on('click',async (e)=>{
+    const result = await loadList();
+    updateChatRooms(result);
+  })
+</script>
+</html>
