@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RedisStreamOps {
     private final RedisTemplate redisTemplate;
-    public void ackStream(String consumerGroupName, MapRecord<String, Object, Object> message){
+    public void ackStream(String consumerGroupName, MapRecord<String, String, Object> message){
         this.redisTemplate.opsForStream().acknowledge(consumerGroupName, message);
     }
     public void claimStream(PendingMessage pendingMessage, String consumerName){

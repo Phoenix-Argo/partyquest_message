@@ -60,6 +60,9 @@ public class RedisConsumer implements StreamListener<String, MapRecord<String,St
                         .message((String) message.getValue().get("message"))
                         .build()
         );
+        String groupName = String.format("%s-group", message.getStream());
+        // ack 처리를 해준다.
+        redisOperator.ackStream(groupName,message);
         log.info((String) message.getStream());
         log.info((String) message.getValue().get("message"));
         log.info("[REDIS SUBSCRIBER] end");
@@ -103,7 +106,9 @@ public class RedisConsumer implements StreamListener<String, MapRecord<String,St
      * publisher에서 레디스 스트림을 등록하기전에 키가 있는지를 확인해야한다.
      * @param streamKey
      */
-    public void createSubscription(String streamKey) {
+    public boolean createSubscription(String streamKey) {
+        boolean result = false;
+
         String groupName = String.format("%s-group", streamKey);
         log.info("[REDIS CONSUMER] search with group name : {}",groupName);
         if(redisTemplate.hasKey(streamKey) && !redisOperator.isStreamConsumerGroupExist(streamKey,groupName)) {
@@ -115,7 +120,18 @@ public class RedisConsumer implements StreamListener<String, MapRecord<String,St
                     StreamOffset.create(streamKey, ReadOffset.lastConsumed()),
                     this
             );
-        }else
+            result = true;
+        } else if (redisTemplate.hasKey(streamKey) && redisOperator.isStreamConsumerGroupExist(streamKey,groupName) && !redisService.isRoomExist(streamKey)) {
+            redisService.putRoomKey(streamKey);
+            log.info("refresh listener group");
+            Subscription newSubs = this.listenerContainer.receive(
+                    Consumer.from(groupName, "name"),
+                    StreamOffset.create(streamKey, ReadOffset.lastConsumed()),
+                    this
+            );
+            result = true;
+        } else
             log.info("there is already listener group");
+        return result;
     }
 }

@@ -47,6 +47,7 @@ public class RedisPublisher {
                 .in(req.makeStreamKey())
                 .ofMap(req.toMap());
         redisTemplate.opsForStream().add(record);
+        redisService.putRoomKey(record.getStream());
     }
 
     public void publishChat(ChatMessageCreate req) {
@@ -56,6 +57,6 @@ public class RedisPublisher {
         redisTemplate.opsForStream().add(record);
 
         //메모리에 캐시로 등록하고 해당 캐시가 없을때에만 구독을 설정한다.
-        redisService.putStreamKey(record.getStream());
+        redisService.putRoomKey(record.getStream());
     }
 }

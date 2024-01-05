@@ -2,6 +2,8 @@ const stompClient = new StompJs.Client({
     brokerURL: 'ws://localhost:8080/tutorial-websocket'
 });
 
+let cur_subs=null;
+
 stompClient.onConnect = (frame) => {
     setConnected(true);
     console.log('Connected: ' + frame);
@@ -47,18 +49,6 @@ function disconnect() {
     console.log("Disconnected");
 }
 
-function sendName() {
-    stompClient.publish({
-        destination: "/party-quest-chat/redis",
-        body: JSON.stringify({'message': $("#name").val()})
-    });
-}
-
-
-function showGreeting(message) {
-    $("#greetings").append("<tr><td>" + message + "</td></tr>");
-}
-
 //Tutorial section
 
 function createRoom() {
@@ -88,7 +78,9 @@ function createSendInput() {
 }
 function enterRoom(name) {
     console.log(name + "subscribed");
-    stompClient.unsubscribe(); // 새 구독을 하기전에 기존의 subscription을 만료시킨다.
+    // 새 구독을 하기전에 기존의 subscription을 만료시킨다.
+    if(cur_subs !==null)
+        cur_subs.unsubscribe()
 
     //현재 이름 표시해준다.
     $("#current_room").empty()
@@ -99,11 +91,12 @@ function enterRoom(name) {
 
     const subscribeURL = '/topic/redis/v2/chatroom/'+name
     console.log(subscribeURL)
-    stompClient.subscribe(subscribeURL,(message)=>{
+
+    cur_subs = stompClient.subscribe(subscribeURL, (message) => {
         const res = JSON.parse(message.body)
         console.log(res);
         addChats(res);
-    })
+    });
 }
 
 function sendChat() {
@@ -121,7 +114,6 @@ $(function () {
     $("form").on('submit', (e) => e.preventDefault());
     $( "#connect" ).click(() => connect());
     $( "#disconnect" ).click(() => disconnect());
-    $( "#send" ).click(() => sendName());
     $("#create").click(() => createRoom());
 });
 

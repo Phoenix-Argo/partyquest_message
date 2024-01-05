@@ -46,14 +46,14 @@ public class TutorialController {
     @MessageMapping("/redis/v2/create")
     public void createNewRoom(ChatRoomCreate req) {
         log.info("[REDIS STREAM CONTROLLER] req = {}", req);
-        redisConsumer.createSubscription(req.makeStreamKey());
         redisPublisher.publishChatRoom(req);
     }
 
     @MessageMapping("/redis/v2/send")
     public void sendMessage(ChatMessageCreate req) {
         log.info("[REDIS STREAM CONTROLLER] req = {}", req);
-        redisConsumer.createSubscription(req.getRoomName());
+        if(!redisConsumer.createSubscription(req.getRoomName()))
+            redisService.readWholeStream(req.getRoomName());
         redisPublisher.publishChat(req);
     }
 
